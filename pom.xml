@@ -15,7 +15,7 @@
         <hamcrest.version>2.2</hamcrest.version>
         <jsonpath.version>2.9.0</jsonpath.version>
         <faker.version>2.2.2</faker.version>
-        <jetty.version>12.0.9</jetty.version>
+        <jetty.version>12.0.10</jetty.version>
   </properties>
     <dependencies>
 		 <dependency>

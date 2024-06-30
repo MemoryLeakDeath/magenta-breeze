@@ -138,30 +138,27 @@
                     <groups>integration-test</groups>
                 </configuration>
            </plugin>
-           <plugin>
-			    <groupId>com.github.akman</groupId>
-			    <artifactId>jpackage-maven-plugin</artifactId>
-			    <version>0.1.5</version>
-			    <executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>jpackage</goal>
-						</goals>
-						<configuration>
-							<modulepath>
-								<dependencySets>
-									<dependencySet>
-										<includeoutput>true</includeoutput>
-									</dependencySet>
-								</dependencySets>
-							</modulepath>
-							<module>tv.memoryleakdeath.magentabreeze/tv.memoryleakdeath.magentabreeze.app.Launcher</module>
-							<toolhome>/usr/lib/jvm/java-19-openjdk-amd64/</toolhome>	
-						</configuration>
-					</execution>					
-				</executions>
-		   </plugin>
+			<plugin>
+			  <groupId>org.jreleaser</groupId>
+			  <artifactId>jreleaser-maven-plugin</artifactId>
+			  <version>1.12.0</version>
+			  <configuration>
+				  <configFile>${project.basedir}/build-release.yml</configFile>
+				  <outputDirectory>${project.build.directory}/releases</outputDirectory>
+			  </configuration>
+			  <executions>
+				  <execution>
+					  <phase>verify</phase>
+					  <goals>
+						  <goal>assemble</goal>
+						  <goal>checksum</goal>
+						  <goal>catalog</goal>
+						  <goal>sign</goal>
+						  <goal>deploy</goal>
+					  </goals>
+				  </execution>
+			  </executions>
+			</plugin>           
         </plugins>	   
    </build>
  </project>

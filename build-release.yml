@@ -1,0 +1,72 @@
+project:
+  name: MagentaBreeze
+  version: 0.0.1
+  description: Magenta Breeze
+  longDescription: Streamer tool for displaying alerts and chat commands
+  vendor: MemoryLeakDeath
+  links:
+    homepage: https://memoryleakdeath.tv/mb
+  authors:
+    - MemoryLeakDeath
+  license: MIT
+  java:
+    mainClass: tv.memoryleakdeath.magentabreeze.app.Launcher
+    mainModule: tv.memoryleakdeath.magentabreeze
+    groupId: tv.memoryleakdeath
+    artifactId: magentabreeze
+    version: 17
+    multiProject: false
+  inceptionYear: 2024
+  
+release:
+  github:
+    owner: none
+    host: none
+    username: none
+    token: none
+    apiEndpoint: none
+    skipRelease: true
+    skipTag: true
+    uploadAssets: NEVER
+
+assemble:
+  jlink:
+    mb-jlink:
+      active: ALWAYS
+      exported: false
+      executable: magentabreeze
+      copyJars: false
+      mainJar:
+        path: 'target/dist/magenta-breeze-{{projectVersion}}-SNAPSHOT.jar'
+      moduleNames:
+        - java.base
+        - tv.memoryleakdeath.magentabreeze
+  jpackage:
+    mb:
+      active: ALWAYS
+      exported: true
+      jlink: mb-jlink
+      attachPlatform: true
+      linux:
+        installDir: /opt/magentabreeze
+        types: [deb]
+        maintainer: MemoryLeakDeath
+        menuGroup: apps
+        license: MIT
+      osx:
+        installDir: /Applications/magentabreeze
+        types: [dmg]
+        packageName: Magenta Breeze
+        packageIdentifier: tv.memoryleakdeath.magentabreeze
+        packageSigningPrefix: tv.memoryleakdeath
+        signingKeyUsername: MemoryLeakDeath
+        sign: true
+      windows:
+        installDir: C:\\\\Program Files\\Magenta Breeze
+        types: [msi]
+        console: true
+        dirChooser: true
+        menu: true
+        perUserInstall: true
+        menuGroup: Applications
+                          

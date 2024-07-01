@@ -40,19 +40,21 @@ assemble:
         path: 'target/dist/magenta-breeze-0.0.1-SNAPSHOT.jar'
       moduleNames:
         - java.base
+        - java.desktop
         - tv.memoryleakdeath.magentabreeze
   jpackage:
-    mb:
+    magenta-breeze:
       active: ALWAYS
       exported: true
       jlink: mb-jlink
       attachPlatform: true
+      applicationPackage:
+        appName: Magenta Breeze
       linux:
         installDir: /opt/magentabreeze
         types: [deb]
         maintainer: MemoryLeakDeath
         menuGroup: apps
-        license: MIT
       osx:
         installDir: /Applications/magentabreeze
         types: [dmg]
@@ -67,6 +69,5 @@ assemble:
         console: true
         dirChooser: true
         menu: true
-        perUserInstall: true
-        menuGroup: Applications
+        menuGroup: Magenta Breeze
                           

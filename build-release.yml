@@ -37,7 +37,7 @@ assemble:
       executable: magentabreeze
       copyJars: false
       mainJar:
-        path: 'target/dist/magenta-breeze-{{projectVersion}}-SNAPSHOT.jar'
+        path: 'target/dist/magenta-breeze-0.0.1-SNAPSHOT.jar'
       moduleNames:
         - java.base
         - tv.memoryleakdeath.magentabreeze

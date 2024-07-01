@@ -47,7 +47,7 @@ jobs:
       run: mvn -B verify --file pom.xml
     - uses: actions/upload-artifact@v4
       with:
-        name: magenta-breeze-linux_x86_64
+        name: magenta-breeze-windows_x86_64
         path: target/releases/assemble/mb/jpackage/*.msi
         overwrite: true
 
@@ -67,7 +67,7 @@ jobs:
       run: mvn -B verify --file pom.xml
     - uses: actions/upload-artifact@v4
       with:
-        name: magenta-breeze-linux_x86_64
+        name: magenta-breeze-osx_aarch64
         path: target/releases/assemble/mb/jpackage/*.dmg
         overwrite: true
       

@@ -1,6 +1,6 @@
 project:
   name: MagentaBreeze
-  version: 0.0.1
+  version: 1.0.0
   description: Magenta Breeze
   longDescription: Streamer tool for displaying alerts and chat commands
   vendor: MemoryLeakDeath

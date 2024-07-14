@@ -28,7 +28,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: magenta-breeze-linux_x86_64
-        path: target/releases/assemble/mb/jpackage/*.deb
+        path: target/releases/assemble/magenta-breeze/jpackage/*.deb
         overwrite: true
 
   windows-build:
@@ -48,7 +48,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: magenta-breeze-windows_x86_64
-        path: target/releases/assemble/mb/jpackage/*.msi
+        path: target/releases/assemble/magenta-breeze/jpackage/*.msi
         overwrite: true
 
   mac-build:
@@ -68,6 +68,6 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: magenta-breeze-osx_aarch64
-        path: target/releases/assemble/mb/jpackage/*.dmg
+        path: target/releases/assemble/magenta-breeze/jpackage/*.dmg
         overwrite: true
       

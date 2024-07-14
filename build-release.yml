@@ -9,6 +9,7 @@ project:
   authors:
     - MemoryLeakDeath
   license: MIT
+  stereotype: DESKTOP
   java:
     mainClass: tv.memoryleakdeath.magentabreeze.app.Launcher
     mainModule: tv.memoryleakdeath.magentabreeze
@@ -33,15 +34,26 @@ assemble:
   jlink:
     mb-jlink:
       active: ALWAYS
+      copyJars: false
       exported: false
       executable: magentabreeze
-      copyJars: false
       mainJar:
         path: 'target/dist/magenta-breeze-0.0.1-SNAPSHOT.jar'
+      jars:
+        - pattern: 'target/dist/lib/*.jar'
+      fileSets:
+        - input: target/dist/lib
+          output: lib
+          failOnMissingInput: false
+        - input: target/classes
+          output: lib
+          includes: 
+            - 'logback.xml'
       moduleNames:
-        - java.base
         - java.desktop
         - tv.memoryleakdeath.magentabreeze
+        - args4j
+        - org.slf4j
   jpackage:
     magenta-breeze:
       active: ALWAYS
@@ -49,14 +61,18 @@ assemble:
       jlink: mb-jlink
       attachPlatform: true
       applicationPackage:
-        appName: Magenta Breeze
+        appName: magenta-breeze
+      launcher:
+        javaOptions: ['-cp $APPDIR/../lib/runtime/lib']
       linux:
-        installDir: /opt/magentabreeze
+        installDir: /opt
+        resourceDir: target/dist/resources/linux 
         types: [deb]
         maintainer: MemoryLeakDeath
         menuGroup: apps
       osx:
         installDir: /Applications/magentabreeze
+        resourceDir: target/dist/resources/osx 
         types: [dmg]
         packageName: Magenta Breeze
         packageIdentifier: tv.memoryleakdeath.magentabreeze
@@ -65,8 +81,9 @@ assemble:
         sign: true
       windows:
         installDir: C:\\\\Program Files\\Magenta Breeze
+        resourceDir: target/dist/resources/windows 
         types: [msi]
-        console: true
+        console: false
         dirChooser: true
         menu: true
         menuGroup: Magenta Breeze

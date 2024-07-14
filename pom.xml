@@ -18,6 +18,7 @@
         <jsonpath.version>2.9.0</jsonpath.version>
         <faker.version>2.2.2</faker.version>
         <jetty.version>12.0.10</jetty.version>
+        <args4j.version>2.37</args4j.version>
   </properties>
     <dependencies>
          <dependency>
@@ -40,6 +41,11 @@
 		    <artifactId>jetty-ee10-webapp</artifactId>
 		    <version>${jetty.version}</version>
 		</dependency>
+		<dependency>
+		    <groupId>args4j</groupId>
+		    <artifactId>args4j</artifactId>
+		    <version>${args4j.version}</version>
+		</dependency>		
 		
 		<!-- TEST Dependencies -->
         <dependency>
@@ -159,6 +165,169 @@
 				  </execution>
 			  </executions>
 			</plugin>           
+			   <plugin>
+				   <groupId>org.apache.maven.plugins</groupId>
+				   <artifactId>maven-dependency-plugin</artifactId>
+				   <version>3.7.1</version>
+				   <executions>
+					   <execution>
+						   <id>Copy Dependencies</id>
+						   <phase>package</phase>
+						   <goals>
+							   <goal>copy-dependencies</goal>
+						   </goals>
+						   <configuration>
+						      <includeScope>runtime</includeScope>
+						      <outputDirectory>${project.build.directory}/dist/lib</outputDirectory>
+						      <overWriteIfNewer>true</overWriteIfNewer>
+						   </configuration>
+					   </execution>
+				   </executions>
+			   </plugin>
+			<plugin>
+			    <groupId>org.moditect</groupId>
+			    <artifactId>moditect-maven-plugin</artifactId>
+			    <version>1.2.2.Final</version>
+			    <executions>
+			        <execution>
+			            <id>add-module-infos</id>
+			            <phase>generate-resources</phase>
+			            <goals>
+			                <goal>add-module-info</goal>
+			            </goals>
+			            <configuration>
+			                <outputDirectory>${project.build.directory}/modules</outputDirectory>
+			                <modules>
+			                    <module>
+			                        <artifact>
+									    <groupId>args4j</groupId>
+									    <artifactId>args4j</artifactId>
+									    <version>${args4j.version}</version>
+			                        </artifact>
+			                        <moduleInfoSource>
+			                            module args4j {
+			                                exports org.kohsuke.args4j;
+			                            }
+			                        </moduleInfoSource>
+			                    </module>
+			                </modules>
+			            </configuration>
+			        </execution>
+			    </executions>
+			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>Copy module patched args4j</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dist/lib</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/modules</directory>
+                                    <include>*.jar</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Copy jpackage linux resource overrides</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dist/resources/linux</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/images/linux</directory>
+                                    <include>magenta-breeze.png</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Copy jpackage osx resource overrides</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dist/resources/osx</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/images/osx</directory>
+                                    <include>*.icns</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Copy jpackage windows resource overrides</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dist/resources/windows</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/images/windows</directory>
+                                    <include>*.ico</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>			
         </plugins>	   
    </build>
+   <profiles>
+	   <profile>
+		   <id>localdev</id>
+		   <activation>
+			   <activeByDefault>false</activeByDefault>
+			   <file>
+				   <exists>dev.txt</exists>
+			   </file>
+		   </activation>
+		   <build>
+			   <plugins>
+				   <plugin>
+					   <groupId>org.apache.maven.plugins</groupId>
+					   <artifactId>maven-dependency-plugin</artifactId>
+					   <version>3.7.1</version>
+					   <executions>
+						   <execution>
+							   <id>Copy War File (DEV)</id>
+							   <phase>package</phase>
+							   <goals>
+								   <goal>copy</goal>
+							   </goals>
+							   <configuration>
+								   <artifactItems>
+									   <artifactItem>
+										   <groupId>tv.memoryleakdeath</groupId>
+										   <artifactId>magenta-breeze-war</artifactId>
+										   <version>0.0.1-SNAPSHOT</version>
+										   <type>war</type>
+										   <overWrite>true</overWrite>
+										   <outputDirectory>${project.build.directory}/dist</outputDirectory>
+										   <destFileName>magenta-breeze-0.0.1-SNAPSHOT.war</destFileName>
+									   </artifactItem>
+								   </artifactItems>
+							   </configuration>
+						   </execution>
+					   </executions>
+				   </plugin>
+			   </plugins>
+		   </build>
+	   </profile>
+   </profiles>
  </project>

@@ -1,11 +1,13 @@
 package tv.memoryleakdeath.magentabreeze.app;
 
 import java.awt.BorderLayout;
-import java.awt.Desktop;
 import java.awt.Dimension;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.awt.Toolkit;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -14,7 +16,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -25,6 +29,11 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tv.memoryleakdeath.magentabreeze.app.ui.AboutDialog;
+import tv.memoryleakdeath.magentabreeze.app.ui.AppWindowListener;
+import tv.memoryleakdeath.magentabreeze.app.ui.LaunchBrowserActionListener;
+import tv.memoryleakdeath.magentabreeze.app.ui.LogTextAreaDocumentListener;
+
 public final class Launcher {
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
@@ -34,6 +43,8 @@ public final class Launcher {
     @Option(name = "-?", usage = "Show this help text")
     private boolean printHelpFlag;
 
+    private ResourceBundle messages;
+
     private void runApplication() {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
@@ -42,59 +53,73 @@ public final class Launcher {
             logger.error("Unable to set look and feel!", e);
         }
         JFrame.setDefaultLookAndFeelDecorated(true);
+        initView();
+    }
 
-        JFrame frame = new JFrame("Magenta Breeze - Hello!");
+    private void initResourceBundle() {
+        Locale systemLocale = Locale.getDefault();
+        messages = ResourceBundle.getBundle("messages", systemLocale);
+    }
+
+    private void initView() {
+        JFrame frame = new JFrame(messages.getString("app.title"));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.addWindowListener(new AppWindowListener(frame));
         frame.getContentPane().setLayout(new BorderLayout());
 
+        // Menu bar and items
         JMenuBar menuBar = new JMenuBar();
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem fileExitMenuItem = new JMenuItem("Exit");
+        JMenu fileMenu = new JMenu(messages.getString("menu.file"));
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+
+        JMenuItem fileExitMenuItem = new JMenuItem(messages.getString("menu.exit"));
+        fileExitMenuItem.addActionListener(l -> {
+            Toolkit.getDefaultToolkit().getSystemEventQueue()
+                    .postEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        });
+        fileExitMenuItem.setMnemonic(KeyEvent.VK_X);
+        fileExitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK));
         fileMenu.add(fileExitMenuItem);
         menuBar.add(fileMenu);
-        JMenu settingsMenu = new JMenu("Settings");
+
+        JMenu settingsMenu = new JMenu(messages.getString("menu.settings"));
+        settingsMenu.setMnemonic(KeyEvent.VK_S);
         menuBar.add(settingsMenu);
-        JMenu helpMenu = new JMenu("Help");
-        JMenuItem helpAboutMenuItem = new JMenuItem("About");
+
+        JMenu helpMenu = new JMenu(messages.getString("menu.help"));
+        helpMenu.setMnemonic(KeyEvent.VK_H);
+        JMenuItem helpAboutMenuItem = new JMenuItem(messages.getString("menu.about"));
+        helpAboutMenuItem.setMnemonic(KeyEvent.VK_A);
+        helpAboutMenuItem.addActionListener(l -> {
+            AboutDialog dialog = new AboutDialog(frame, messages);
+            dialog.setVisible(true);
+        });
         helpMenu.add(helpAboutMenuItem);
         menuBar.add(helpMenu);
         frame.getContentPane().add(menuBar, BorderLayout.NORTH);
 
+        // Center Area
         JPanel centerPanel = new JPanel(new BorderLayout());
         String warFileStatus = "War file status: %s".formatted(WarManagementUtil.isWarOk(installDir).name());
         JLabel installDirLabel = new JLabel(installDir);
         centerPanel.add(installDirLabel, BorderLayout.NORTH);
 
-        JTextArea logTextArea = new JTextArea(LauncherWindowLogAppender.getSwingDocument(), "Log messages:\n", 25, 40);
-        centerPanel.add(logTextArea, BorderLayout.CENTER);
+        // Logging area and scroll pane
+        JTextArea logTextArea = new JTextArea(LauncherWindowLogAppender.getSwingDocument(), "", 25, 40);
+        logTextArea.getDocument().addDocumentListener(new LogTextAreaDocumentListener(logTextArea));
+        JScrollPane logScrollPane = new JScrollPane(logTextArea);
+        centerPanel.add(logScrollPane, BorderLayout.CENTER);
         frame.getContentPane().add(centerPanel);
 
+        // Bottom button panel items
         JPanel actionPanel = new JPanel(new BorderLayout());
         frame.getContentPane().add(actionPanel, BorderLayout.SOUTH);
 
-        JButton toggleServerStateButton = new JButton("Stop Server");
+        JButton toggleServerStateButton = new JButton(messages.getString("button.stopserver"));
         actionPanel.add(toggleServerStateButton, BorderLayout.WEST);
 
-        JButton openBrowserButton = new JButton("Open Browser");
-        openBrowserButton.addActionListener(l -> {
-            if (Desktop.isDesktopSupported()) {
-                try {
-                    Desktop desktop = Desktop.getDesktop();
-                    if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                        Desktop.getDesktop().browse(new URI("https://google.com/"));
-                        logger.info("Browser launched via Desktop object!");
-                    } else {
-                        ProcessBuilder pb = new ProcessBuilder("xdg-open", "https://google.com/");
-                        pb.start();
-                        logger.info("Browser launched via xdg-open!");
-                    }
-                } catch (IOException | URISyntaxException e) {
-                    logger.error("Unable to launch browser!", e);
-                }
-            } else {
-                logger.error("java.awt.Desktop is not supported on this platform!");
-            }
-        });
+        JButton openBrowserButton = new JButton(messages.getString("button.openbrowser"));
+        openBrowserButton.addActionListener(new LaunchBrowserActionListener());
         actionPanel.add(openBrowserButton, BorderLayout.EAST);
 
         frame.setMinimumSize(new Dimension(800, 600));
@@ -117,6 +142,7 @@ public final class Launcher {
     }
 
     private void doMain(String[] args) {
+        initResourceBundle();
         parseCommandLine(args);
 
         if (printHelpFlag) {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE configuration>
 
-<configuration scan="false">
+<configuration scan="1 minute">
   <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
   <import class="ch.qos.logback.core.rolling.RollingFileAppender"/>
   <import class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy"/>
@@ -25,7 +25,7 @@
     </layout>
   </appender>
 
-  <root level="DEBUG">
+  <root level="TRACE">
     <appender-ref ref="ROLLING"/>
     <appender-ref ref="LauncherWindow"/>
   </root>

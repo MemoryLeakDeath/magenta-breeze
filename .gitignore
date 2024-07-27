@@ -18,3 +18,5 @@ buildNumber.properties
 /.settings/
 /dev.txt
 /logs/
+/catalina.base_IS_UNDEFINED/
+/db/

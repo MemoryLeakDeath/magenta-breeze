@@ -6,8 +6,8 @@ import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.net.URL;
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -36,14 +36,17 @@ import tv.memoryleakdeath.magentabreeze.app.ui.LogTextAreaDocumentListener;
 
 public final class Launcher {
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
+    private static final String START_SERVER_ACTION = "startServer";
+    private static final String STOP_SERVER_ACTION = "stopServer";
 
-    @Option(name = "-installDir", usage = "specify directory to find war files to deploy", metaVar = "directory")
-    private String installDir = System.getProperty("jpackage.app-path");
+    @Option(name = "-warFile", usage = "specify directory to find war files to deploy", metaVar = "directory")
+    private String warFile = null;
 
     @Option(name = "-?", usage = "Show this help text")
     private boolean printHelpFlag;
 
-    private ResourceBundle messages;
+    private ExternalMessageResolver messages;
+    private ServerManager serverManager;
 
     private void runApplication() {
         try {
@@ -53,26 +56,39 @@ public final class Launcher {
             logger.error("Unable to set look and feel!", e);
         }
         JFrame.setDefaultLookAndFeelDecorated(true);
+        initServerManager();
         initView();
     }
 
     private void initResourceBundle() {
         Locale systemLocale = Locale.getDefault();
-        messages = ResourceBundle.getBundle("messages", systemLocale);
+        messages = new ExternalMessageResolver(systemLocale);
+    }
+
+    private void initServerManager() {
+        if (warFile == null) {
+            URL warFileUrl = getClass().getClassLoader().getResource(ApplicationConstants.WAR_FILENAME);
+            if (warFileUrl == null) {
+                logger.error("Unable to find WAR file for server deployment!");
+            } else {
+                warFile = warFileUrl.toString();
+            }
+        }
+        serverManager = new ServerManager(warFile);
     }
 
     private void initView() {
-        JFrame frame = new JFrame(messages.getString("app.title"));
+        JFrame frame = new JFrame(messages.getMessage("app.title"));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.addWindowListener(new AppWindowListener(frame));
         frame.getContentPane().setLayout(new BorderLayout());
 
         // Menu bar and items
         JMenuBar menuBar = new JMenuBar();
-        JMenu fileMenu = new JMenu(messages.getString("menu.file"));
+        JMenu fileMenu = new JMenu(messages.getMessage("menu.file"));
         fileMenu.setMnemonic(KeyEvent.VK_F);
 
-        JMenuItem fileExitMenuItem = new JMenuItem(messages.getString("menu.exit"));
+        JMenuItem fileExitMenuItem = new JMenuItem(messages.getMessage("menu.exit"));
         fileExitMenuItem.addActionListener(l -> {
             Toolkit.getDefaultToolkit().getSystemEventQueue()
                     .postEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
@@ -82,13 +98,13 @@ public final class Launcher {
         fileMenu.add(fileExitMenuItem);
         menuBar.add(fileMenu);
 
-        JMenu settingsMenu = new JMenu(messages.getString("menu.settings"));
+        JMenu settingsMenu = new JMenu(messages.getMessage("menu.settings"));
         settingsMenu.setMnemonic(KeyEvent.VK_S);
         menuBar.add(settingsMenu);
 
-        JMenu helpMenu = new JMenu(messages.getString("menu.help"));
+        JMenu helpMenu = new JMenu(messages.getMessage("menu.help"));
         helpMenu.setMnemonic(KeyEvent.VK_H);
-        JMenuItem helpAboutMenuItem = new JMenuItem(messages.getString("menu.about"));
+        JMenuItem helpAboutMenuItem = new JMenuItem(messages.getMessage("menu.about"));
         helpAboutMenuItem.setMnemonic(KeyEvent.VK_A);
         helpAboutMenuItem.addActionListener(l -> {
             AboutDialog dialog = new AboutDialog(frame, messages);
@@ -100,8 +116,7 @@ public final class Launcher {
 
         // Center Area
         JPanel centerPanel = new JPanel(new BorderLayout());
-        String warFileStatus = "War file status: %s".formatted(WarManagementUtil.isWarOk(installDir).name());
-        JLabel installDirLabel = new JLabel(installDir);
+        JLabel installDirLabel = new JLabel(warFile);
         centerPanel.add(installDirLabel, BorderLayout.NORTH);
 
         // Logging area and scroll pane
@@ -115,11 +130,23 @@ public final class Launcher {
         JPanel actionPanel = new JPanel(new BorderLayout());
         frame.getContentPane().add(actionPanel, BorderLayout.SOUTH);
 
-        JButton toggleServerStateButton = new JButton(messages.getString("button.stopserver"));
+        JButton toggleServerStateButton = new JButton(messages.getMessage("button.startserver"));
+        toggleServerStateButton.setActionCommand(START_SERVER_ACTION);
+        toggleServerStateButton.addActionListener(l -> {
+            if (START_SERVER_ACTION.equals(l.getActionCommand())) {
+                serverManager.startServer();
+                toggleServerStateButton.setActionCommand(STOP_SERVER_ACTION);
+                toggleServerStateButton.setText(messages.getMessage("button.stopserver"));
+            } else {
+                serverManager.stopServer();
+                toggleServerStateButton.setActionCommand(START_SERVER_ACTION);
+                toggleServerStateButton.setText(messages.getMessage("button.startserver"));
+            }
+        });
         actionPanel.add(toggleServerStateButton, BorderLayout.WEST);
 
-        JButton openBrowserButton = new JButton(messages.getString("button.openbrowser"));
-        openBrowserButton.addActionListener(new LaunchBrowserActionListener());
+        JButton openBrowserButton = new JButton(messages.getMessage("button.openbrowser"));
+        openBrowserButton.addActionListener(new LaunchBrowserActionListener(serverManager));
         actionPanel.add(openBrowserButton, BorderLayout.EAST);
 
         frame.setMinimumSize(new Dimension(800, 600));

@@ -20,3 +20,4 @@ buildNumber.properties
 /logs/
 /catalina.base_IS_UNDEFINED/
 /db/
+/secretkeys.properties

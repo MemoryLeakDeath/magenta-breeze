@@ -39,8 +39,11 @@ public final class Launcher {
     private static final String START_SERVER_ACTION = "startServer";
     private static final String STOP_SERVER_ACTION = "stopServer";
 
-    @Option(name = "-warFile", usage = "specify directory to find war files to deploy", metaVar = "directory")
+    @Option(name = "-warFile", usage = "specify war file to deploy", metaVar = "file")
     private String warFile = null;
+
+    @Option(name = "-keystore", usage = "specify ssl keystore file", metaVar = "file")
+    private String keystore = null;
 
     @Option(name = "-?", usage = "Show this help text")
     private boolean printHelpFlag;
@@ -74,7 +77,15 @@ public final class Launcher {
                 warFile = warFileUrl.toString();
             }
         }
-        serverManager = new ServerManager(warFile);
+        if (keystore == null) {
+            URL keystoreUrl = getClass().getClassLoader().getResource(ApplicationConstants.KEYSTORE_FILENAME);
+            if (keystoreUrl == null) {
+                logger.error("Unable to find keystore file for server ssl!");
+            } else {
+                keystore = keystoreUrl.toString();
+            }
+        }
+        serverManager = new ServerManager(warFile, keystore);
     }
 
     private void initView() {

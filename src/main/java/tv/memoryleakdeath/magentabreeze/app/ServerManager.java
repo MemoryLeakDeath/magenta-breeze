@@ -4,24 +4,30 @@ import java.net.URI;
 
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.ForwardedRequestCustomizer;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServerManager {
     private static final Logger logger = LoggerFactory.getLogger(ServerManager.class);
-    private static final int SERVER_PORT = 7000;
+    private static final int SERVER_PORT = 7443;
     private static final long SERVER_STOP_TIMEOUT = 6000;
 
     private Server server;
     private String warFile;
+    private String keystore;
     private WebAppContext webAppContext;
 
-    public ServerManager(String warFile) {
+    public ServerManager(String warFile, String keystore) {
         this.warFile = warFile;
+        this.keystore = keystore;
         initServer();
     }
 
@@ -34,11 +40,20 @@ public class ServerManager {
         webAppContext.setConfigurationDiscovered(true);
         webAppContext.setTempDirectoryPersistent(true);
         webAppContext.setExtractWAR(true);
-        HttpConfiguration http = new HttpConfiguration();
-        ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(http));
-        httpConnector.setPort(SERVER_PORT);
-        httpConnector.setHost("127.0.0.1");
-        server.setConnectors(new Connector[] { httpConnector });
+
+        SslContextFactory.Server sslContext = new SslContextFactory.Server();
+        sslContext.setKeyStorePath(keystore);
+        sslContext.setKeyStorePassword(SecureStorageUtil.getKeyValueFromSecureStorage("keystore.password"));
+
+        HttpConfiguration https = new HttpConfiguration();
+        https.addCustomizer(new ForwardedRequestCustomizer());
+        https.addCustomizer(new SecureRequestCustomizer());
+
+        ServerConnector sslConnector = new ServerConnector(server, new SslConnectionFactory(sslContext, "http/1.1"),
+                new HttpConnectionFactory(https));
+        sslConnector.setPort(SERVER_PORT);
+        sslConnector.setHost("localhost");
+        server.setConnectors(new Connector[] { sslConnector });
         server.setHandler(webAppContext);
         server.setStopAtShutdown(true);
         server.setStopTimeout(SERVER_STOP_TIMEOUT);

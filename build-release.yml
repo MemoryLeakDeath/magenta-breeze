@@ -49,11 +49,27 @@ assemble:
           output: lib
           includes: 
             - 'logback.xml'
+            - 'messages/*'
+            - 'keystore.db'
+            - 'keystore.mstore'
+        - input: cert
+          output: cert
+          includes:
+            - 'cert/*'
       moduleNames:
         - java.desktop
         - tv.memoryleakdeath.magentabreeze
         - args4j
         - org.slf4j
+        - java.sql
+        - ch.qos.logback.classic
+        - ch.qos.logback.core
+        - java.naming
+        - org.eclipse.jetty.server
+        - org.eclipse.jetty.ee10.webapp
+        - org.eclipse.jetty.ee10.annotations
+        - org.apache.commons.lang3
+        - com.h2database		
   jpackage:
     magenta-breeze:
       active: ALWAYS

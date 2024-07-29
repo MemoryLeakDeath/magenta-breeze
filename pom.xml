@@ -20,7 +20,7 @@
         <jetty.version>12.0.11</jetty.version>
         <args4j.version>2.37</args4j.version>
         <h2.version>2.2.224</h2.version>
-        <commonslang.version>3.14.0</commonslang.version>        
+        <commonslang.version>3.15.0</commonslang.version>        
         <skipcertimport>false</skipcertimport>        
   </properties>
     <dependencies>
